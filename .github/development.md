@@ -9,4 +9,4 @@ This document describes the process for running this application on your local c
 
 ## Getting started
 
-Create `.env` and add your PAT for GiHub packages. You'll need to use it before installing like: `NPM_CONFIG_TOKEN=XXX pnpm install`
+Create `.env` and add your PAT for GiHub packages. You'll need to use it before installing like: `NODE_AUTH_TOKEN=XXX pnpm install`
