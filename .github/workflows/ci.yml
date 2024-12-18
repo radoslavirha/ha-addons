@@ -1,4 +1,4 @@
-name: Lint & Build
+name: Verify code
 
 on:
   push:
