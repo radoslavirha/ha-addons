@@ -16,6 +16,7 @@ To get an overview of the project, read the [README](../README.md). Here are som
 - [Set up Git](https://docs.github.com/en/get-started/quickstart/set-up-git)
 - [GitHub flow](https://docs.github.com/en/get-started/quickstart/github-flow)
 - [Collaborating with pull requests](https://docs.github.com/en/github/collaborating-with-pull-requests)
+- [Changesets](https://github.com/changesets/changesets)
 
 ## Getting started
 
@@ -35,19 +36,9 @@ Scan through our [existing issues](https://github.com/radoslavirha/ha-addon-lask
 2. Create a working branch
 3. See [the development guide](development.md).
 
-### Commit your update
+### Create changeset
 
-Adherence to [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) is required.
-
-You can use GitHub issue ID in commit body prefixed with #. E.g. #2
-
-Full commit message:
-
-```git
-chore: use GitHub issue id in conventional commits
-
-#2
-```
+This repository uses [Changesets](https://github.com/changesets/changesets). Before submitting a pull request, a contributor should create a changeset using `pnpm changeset`.
 
 ### Pull Request
 

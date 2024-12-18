@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "Data Feeder for LaskaKit interactive map of Czech republic",
   "type": "module",
+  "private": true,
   "scripts": {
     "build": "swc src --out-dir dist -s --strip-leading-paths",
     "lint": "eslint .",
