@@ -8,6 +8,9 @@ jobs:
   lint:
     name: Lint
     runs-on: ubuntu-latest
+    permissions:
+      packages: read
+      contents: read
     strategy:
       matrix:
         node-version: [20]
