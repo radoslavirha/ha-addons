@@ -3,7 +3,7 @@
 **/node_modules
 **/.DS_Store
 **/.npmrc
-!.npmrc
+# !.npmrc
 addons/**/config/*.json
 !addons/**/config/custom-environment-variables.json
 .env
