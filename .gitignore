@@ -7,3 +7,4 @@
 addons/**/config/*.json
 !addons/**/config/custom-environment-variables.json
 .env
+.act

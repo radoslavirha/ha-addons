@@ -11,6 +11,8 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+    outputs:
+      package-matrix: ${{ steps.set-matrix.outputs.matrix }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -32,3 +34,36 @@ jobs:
         uses: changesets/action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: echo "${{ fromJson(steps.changesets.outputs) }}"
+      # - name: Generate packages matrix
+      #   if: steps.changesets.outputs.hasChangesets == 'false'
+      #   id: set-matrix
+      #   # run: |
+      #   #   if [ "${{ steps.changesets.outputs.publishedPackages }}" != "" ]; then
+      #   #     MATRIX=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -c '.')
+      #   #     echo "::set-output name=matrix::$MATRIX"
+      #   #   else
+      #   #     echo "::set-output name=matrix::[]"
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # process-packages:
+  #   needs: release
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: write
+  #   strategy:
+  #     matrix:
+  #       package: ${{ fromJson(needs.release.outputs.package-matrix) }}
+  #   steps:
+  #     # Checkout repository
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #     # Log package information
+  #     - name: Log package details
+  #       run: |
+  #         echo "Processing package: ${{ matrix.package.name }}"
+  #         echo "Version: ${{ matrix.package.version }}"
+  #     # update version in config.json
+  #     # build containers
+  #     # trigger addons repository
