@@ -1,5 +1,11 @@
 # @irha-ha-addons/laskakit-data-feeder
 
+## 0.0.2
+
+### Patch Changes
+
+- [`ff5b8a7`](https://github.com/radoslavirha/ha-addons/commit/ff5b8a7df20eca4a31eddad5683960a752195e32) Thanks [@radoslavirha](https://github.com/radoslavirha)! - Initial release
+
 ## 0.0.3
 
 ### Patch Changes
