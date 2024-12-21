@@ -34,7 +34,8 @@ jobs:
         uses: changesets/action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      - run: echo "${{ fromJson(steps.changesets.outputs) }}"
+      - name: Display all outputs
+        run: echo "${{ toJson(steps.changesets.outputs) }}"
       # - name: Generate packages matrix
       #   if: steps.changesets.outputs.hasChangesets == 'false'
       #   id: set-matrix
