@@ -1,0 +1,75 @@
+name: Release addons
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          registry-url: https://npm.pkg.github.com/
+          scope: '@radoslavirha'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Create Release Pull Request and Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          version: pnpm changeset:version
+          publish: pnpm changeset:tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Display all outputs
+        run: echo "${{ toJson(steps.changesets.outputs) }}"
+      # - name: Generate packages matrix
+      #   if: steps.changesets.outputs.hasChangesets == 'false'
+      #   id: set-matrix
+      #   # run: |
+      #   #   if [ "${{ steps.changesets.outputs.publishedPackages }}" != "" ]; then
+      #   #     MATRIX=$(echo '${{ steps.changesets.outputs.publishedPackages }}' | jq -c '.')
+      #   #     echo "::set-output name=matrix::$MATRIX"
+      #   #   else
+      #   #     echo "::set-output name=matrix::[]"
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # process-packages:
+  #   needs: release
+  #   runs-on: ubuntu-latest
+  #   permissions:
+  #     contents: write
+  #   strategy:
+  #     matrix:
+  #       package: ${{ fromJson(needs.release.outputs.package-matrix) }}
+  #   steps:
+  #     # Checkout repository
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #     # Log package information
+  #     - name: Log package details
+  #       run: |
+  #         echo "Processing package: ${{ matrix.package.name }}"
+  #         echo "Version: ${{ matrix.package.version }}"
+  #     # update version in config.json
+  #     # build containers
+  #     # trigger addons repository
+
+  # TODO:
+  # - after PR is merged, trigger check to compare config.json version with docker hub version (should be possible with home assistant builder?) and create output matrix with packages to release
+  # - create github release and release to dockerhub
