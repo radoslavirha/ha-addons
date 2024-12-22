@@ -1,0 +1,1 @@
+Use https://www.npmjs.com/package/syncpack to sync dependency versions across addons (I can't use pnpm catalogs due to home assistant builder ...maybe I can use pnpm deploy before and don't need this...must try)
