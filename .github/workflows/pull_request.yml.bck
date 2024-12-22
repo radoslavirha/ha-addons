@@ -1,0 +1,23 @@
+name: CI on pull request (build docker)
+
+on: [pull_request]
+
+jobs:
+  build:
+    name: Test docker build
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        addon:
+          - addons/laskakit-data-feeder
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+      - name: Test build
+        uses: home-assistant/builder@master
+        with:
+          args: |
+            --test \
+            --all \
+            --target ${{ matrix.addon }} \
+            --docker-hub ${{ secrets.DOCKERHUB_USERNAME }}
