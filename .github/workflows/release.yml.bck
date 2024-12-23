@@ -1,0 +1,21 @@
+name: Publish
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  update-add-ons-repository:
+    name: 📢 Publish Add-on in Homeassistant
+    runs-on: ubuntu-latest
+    needs:
+     - publish-docker
+    steps:
+      - name: 🚀 Dispatch Repository Updater update signal
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.HA_DISPATCH_TOKEN }}
+          repository: radoslavirha/homeassistant-addons
+          event-type: update
+          client-payload: '{"addon": "laskakit-data-feeder"}'
