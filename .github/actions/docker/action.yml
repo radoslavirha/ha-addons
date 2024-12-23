@@ -1,0 +1,44 @@
+name: Docker build / publish
+description: Builds addon docker image and publishes it to Docker Hub if requested
+inputs:
+  ADDON_NAME:
+    description: Addon name from package.json
+    required: true
+  DOCKERHUB_PUBLISH:
+    description: Whether to build and publish to Docker Hub or just build the image
+    required: true
+    default: 'false'
+  NODE_AUTH_TOKEN:
+    description: A Node auth token / GitHub token
+    required: true
+  DOCKERHUB_USERNAME:
+    description: Docker Hub username (repository owner). Required if DOCKERHUB_PUBLISH is true
+    required: false
+  DOCKERHUB_TOKEN:
+    description: Docker Hub token used to publish image. Required if DOCKERHUB_PUBLISH is true
+    required: false
+runs:
+  using: composite
+  steps:
+    - name: Prepare repository
+      uses: ./.github/actions/prepare
+      with:
+        NODE_AUTH_TOKEN: ${{ inputs.NODE_AUTH_TOKEN }}
+    - name: PNPM deploy ${{ inputs.ADDON_NAME }}
+      run: pnpm --filter=${{ inputs.ADDON_NAME }} --prod deploy deployed
+      shell: bash
+    - name: Login to DockerHub
+      if: ${{ inputs.DOCKERHUB_PUBLISH == 'true' }}
+      uses: docker/login-action@v3
+      with:
+        username: ${{ inputs.DOCKERHUB_USERNAME }}
+        password: ${{ inputs.DOCKERHUB_TOKEN }}
+    - name: |
+        ${{ inputs.DOCKERHUB_PUBLISH == 'false' && 'Test build' || 'Publish to Docker Hub' }}
+      uses: home-assistant/builder@master
+      with:
+        args: |
+          ${{ inputs.DOCKERHUB_PUBLISH == 'false' && '--test' || '' }}
+          --all \
+          --target deployed \
+          --docker-hub ${{ inputs.DOCKERHUB_USERNAME }}
