@@ -1,0 +1,37 @@
+name: Pull request
+
+on:
+  workflow_call:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  check-addon-changes:
+    name: Check addon changes
+    runs-on: ubuntu-latest
+    outputs:
+      changedAddons: ${{ steps.filter.outputs.changes }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: 📂 Detect changed files
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            # [name from package.json]: path 
+            laskakit-data-feeder: addons/laskakit-data-feeder/**
+      # - name: Prepare repository
+      #   uses: ./.github/actions/prepare
+      #   with:
+      #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Test build
+      #   uses: home-assistant/builder@master
+      #   with:
+      #     args: |
+      #       --test \
+      #       --all \
+      #       --target ${{ matrix.addon }} \
+      #       --docker-hub ${{ secrets.DOCKERHUB_USERNAME }}
