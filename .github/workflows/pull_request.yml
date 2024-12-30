@@ -23,7 +23,6 @@ jobs:
           filters: |
             addons: 
               - 'addons/**'
-      - run: echo "${{ steps.filter.outputs.changes }}"
       # - name: Prepare repository
       #   uses: ./.github/actions/prepare
       #   with:
