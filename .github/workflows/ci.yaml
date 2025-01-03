@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  changes:
+    name: Check addon changes
+    runs-on: ubuntu-latest
+    # Required permissions
+    permissions:
+      pull-requests: read
+    outputs:
+      addons: ${{ steps.filter.outputs.changes }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: 📂 Detect changed files
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: .github/paths-filter.yaml
+
+  lint-addon:
+    name: Lint ${{ matrix.addon }} addon
+    needs: changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.changes.outputs.addons != '[]' }}
+    strategy:
+      matrix:
+        addon: ${{ fromJSON(needs.changes.outputs.addons) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Prepare repository
+        uses: ./.github/actions/prepare
+        with:
+          TARGET_ADDON: ${{ matrix.addon }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run lint
+        run: pnpm --filter "./addons/${{ matrix.addon }}" lint
+
+  build-addon:
+    name: Build ${{ matrix.addon }} addon
+    needs: changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.changes.outputs.addons != '[]' }}
+    strategy:
+      matrix:
+        addon: ${{ fromJSON(needs.changes.outputs.addons) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Prepare repository
+        uses: ./.github/actions/prepare
+        with:
+          TARGET_ADDON: ${{ matrix.addon }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run build
+        run: pnpm --filter "./addons/${{ matrix.addon }}" build
+
+  test-addon:
+    name: Test ${{ matrix.addon }} addon
+    needs: changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.changes.outputs.addons != '[]' }}
+    strategy:
+      matrix:
+        addon: ${{ fromJSON(needs.changes.outputs.addons) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Prepare repository
+        uses: ./.github/actions/prepare
+        with:
+          TARGET_ADDON: ${{ matrix.addon }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run tests
+        run: pnpm --filter "./addons/${{ matrix.addon }}" test
