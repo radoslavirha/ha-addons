@@ -1,7 +1,6 @@
 name: Docker build / publish
 description: Builds addon docker image and publishes it to Docker Hub if requested
 inputs:
-# Accept path?
   ADDON_NAME:
     description: Addon name from package.json
     required: true
@@ -41,5 +40,5 @@ runs:
         args: |
           ${{ inputs.DOCKERHUB_PUBLISH == 'false' && '--test' || '' }}
           --all \
-          --target deployed \
+          --target . \
           --docker-hub ${{ inputs.DOCKERHUB_USERNAME }}
