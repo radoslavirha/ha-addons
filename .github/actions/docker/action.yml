@@ -1,0 +1,41 @@
+name: Docker build / publish
+description: Builds addon docker image and publishes it to Docker Hub if requested
+inputs:
+  ADDON_NAME:
+    description: Addon name from package.json
+    required: true
+  ADDON_SUBFOLDER:
+    description: Addon subfolder inside addons folder
+    required: true
+  DOCKERHUB_PUBLISH:
+    description: Whether to build and publish to Docker Hub or just build the image
+    required: true
+    default: 'false'
+  NODE_AUTH_TOKEN:
+    description: A Node auth token / GitHub token
+    required: true
+  DOCKERHUB_USERNAME:
+    description: Docker Hub username (repository owner). Required if DOCKERHUB_PUBLISH is true
+    required: false
+  DOCKERHUB_TOKEN:
+    description: Docker Hub token used to publish image. Required if DOCKERHUB_PUBLISH is true
+    required: false
+runs:
+  using: composite
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    - name: Login to DockerHub
+      if: ${{ inputs.DOCKERHUB_PUBLISH == 'true' }}
+      uses: docker/login-action@v3
+      with:
+        username: ${{ inputs.DOCKERHUB_USERNAME }}
+        password: ${{ inputs.DOCKERHUB_TOKEN }}
+    - name: |
+        ${{ inputs.DOCKERHUB_PUBLISH == 'false' && 'Test build' || 'Publish to Docker Hub' }}
+      uses: home-assistant/builder@master
+      with:
+        args: |
+          --all \
+          --target ${{ inputs.ADDON_SUBFOLDER }} \
+          ${{ inputs.DOCKERHUB_PUBLISH == 'false' && '--test' || '' }}
