@@ -1,0 +1,72 @@
+name: Manual docker build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  addons-list:
+    name: Create addons list
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-addons-matrix.outputs.json }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Compose addons list
+        uses: actions/github-script@v7
+        id: addons
+        with:
+          result-encoding: string
+          script: |
+            const addons = [];
+
+            try {
+              const fs = require('fs');
+
+              const addonSubfolders = fs.readdirSync('addons', { withFileTypes: true })
+                .filter(dirent => dirent.isDirectory())
+                .map(dirent => dirent.name);
+
+              for (const subfolder of addonSubfolders) {
+                if (fs.existsSync(`addons/${subfolder}/package.json`)) {
+                  const { name, version } = JSON.parse(fs.readFileSync(`./addons/${subfolder}/package.json`));
+                  addons.push({
+                    name,
+                    version,
+                    subfolder
+                  });
+                }
+              }
+            } catch(err) {
+              core.error(err)
+              core.setFailed(err)
+            }
+            return JSON.stringify(addons);
+      - name: Set Addons matrix
+        id: set-addons-matrix
+        if: ${{ steps.addons.outcome == 'success' && steps.addons.outputs.result != '[]' }}
+        uses: nickofthyme/object-remap@v3
+        with:
+          include.*.name: ${{ toJSON(fromJSON(steps.addons.outputs.result).*.name) }}
+          include.*.version: ${{ toJSON(fromJSON(steps.addons.outputs.result).*.version) }}
+          include.*.subfolder: ${{ toJSON(fromJSON(steps.addons.outputs.result).*.subfolder) }}
+
+  build:
+      name: Build ${{ matrix.name }} ${{ matrix.version }}
+      runs-on: ubuntu-latest
+      needs: addons-list
+      if: ${{ needs.addons-list.outputs.matrix != '' && needs.addons-list.outputs.matrix != '{}' }}
+      permissions:
+        contents: write
+      strategy:
+        matrix: ${{ fromJson(needs.addons-list.outputs.matrix) }}
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+        - name: Build ${{ matrix.name }} ${{ matrix.version }} docker image
+          uses: ./.github/actions/docker
+          with:
+            ADDON_NAME: ${{ matrix.name }}
+            ADDON_SUBFOLDER: ${{ matrix.subfolder }}
+            NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            DOCKERHUB_PUBLISH: false

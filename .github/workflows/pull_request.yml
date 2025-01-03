@@ -1,0 +1,81 @@
+name: Pull request
+
+on:
+  workflow_call:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  check-addon-changes:
+    name: Check addon changes
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      matrix: ${{ steps.set-addons-matrix.outputs.json }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: 📂 Detect changed files
+        uses: dorny/paths-filter@v3
+        id: paths-filter
+        with:
+          filters: .github/paths-filter.yml
+      - name: Compose array of changed addons
+        uses: actions/github-script@v7
+        id: addons
+        if: ${{ steps.paths-filter.outputs.changes != '[]' }}
+        with:
+          result-encoding: string
+          script: |
+            const addonSubfolders = JSON.parse('${{ steps.paths-filter.outputs.changes }}');
+            const addons = [];
+
+            try {
+              const fs = require('fs');
+
+              for (const subfolder of addonSubfolders) {
+                if (fs.existsSync(`addons/${subfolder}/package.json`)) {
+                  const { name, version } = JSON.parse(fs.readFileSync(`./addons/${subfolder}/package.json`));
+                  addons.push({
+                    name,
+                    version,
+                    subfolder
+                  });
+                }
+              }
+            } catch(err) {
+              core.error(err)
+              core.setFailed(err)
+            }
+            return JSON.stringify(addons);
+      - name: Set Addons matrix
+        id: set-addons-matrix
+        if: ${{ steps.addons.outcome == 'success' && steps.addons.outputs.result != '[]' }}
+        uses: nickofthyme/object-remap@v3
+        with:
+          include.*.name: ${{ toJSON(fromJSON(steps.addons.outputs.result).*.name) }}
+          include.*.version: ${{ toJSON(fromJSON(steps.addons.outputs.result).*.version) }}
+          include.*.subfolder: ${{ toJSON(fromJSON(steps.addons.outputs.result).*.subfolder) }}
+
+  build:
+      name: Build ${{ matrix.name }} ${{ matrix.version }}
+      runs-on: ubuntu-latest
+      needs: check-addon-changes
+      if: ${{ needs.check-addon-changes.outputs.matrix != '' && needs.check-addon-changes.outputs.matrix != '{}' }}
+      permissions:
+        contents: write
+      strategy:
+        matrix: ${{ fromJson(needs.check-addon-changes.outputs.matrix) }}
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+        - name: Build ${{ matrix.name }} ${{ matrix.version }} docker image
+          uses: ./.github/actions/docker
+          with:
+            ADDON_NAME: ${{ matrix.name }}
+            ADDON_SUBFOLDER: ${{ matrix.subfolder }}
+            NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            DOCKERHUB_PUBLISH: false
