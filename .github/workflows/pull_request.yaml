@@ -1,0 +1,67 @@
+name: Pull request
+
+on:
+  workflow_call:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  changes:
+    name: Check addon changes
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    outputs:
+      addons: ${{ steps.filter.outputs.changes }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: 📂 Detect changed files
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: .github/paths-filter.yaml
+
+  test-addon:
+    name: Test ${{ matrix.addon }} addon
+    needs: changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.changes.outputs.addons != '[]' }}
+    strategy:
+      matrix:
+        addon: ${{ fromJSON(needs.changes.outputs.addons) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Prepare repository
+        uses: ./.github/actions/prepare
+        with:
+          TARGET_ADDON: ${{ matrix.addon }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run tests
+        run: pnpm --filter "./addons/${{ matrix.addon }}" test
+
+  build-addon-image:
+      name: Build ${{ matrix.name }} docker image
+      needs:
+        - changes
+        - test-addon
+      runs-on: ubuntu-latest
+      if: ${{ needs.changes.outputs.addons != '[]' }}
+      # permissions:
+      #   contents: write
+      strategy:
+        matrix:
+          addon: ${{ fromJSON(needs.changes.outputs.addons) }}
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+        # - name: Build docker image
+        #   uses: ./.github/actions/docker
+        #   with:
+        #     ADDON_NAME: ${{ matrix.name }}
+        #     ADDON_SUBFOLDER: ${{ matrix.subfolder }}
+        #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        #     DOCKERHUB_PUBLISH: false
