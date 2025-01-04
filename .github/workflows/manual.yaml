@@ -1,0 +1,80 @@
+name: Manual docker build
+
+on:
+  workflow_dispatch:
+
+jobs:
+  changes:
+    name: Create addons list
+    runs-on: ubuntu-latest
+    outputs:
+      addons: ${{ steps.addons.outputs.folders_no_base_path }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Compose addons list
+        id: addons
+        uses: Drafteame/list-folders-action@main
+        with:
+          paths: |
+            ./addons
+
+# TODO: remove lint job, implement https://github.com/frenck/action-addon-information https://github.com/frenck/action-addon-linter
+  information:
+    name: Get add-on information
+    needs: changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.changes.outputs.addons != '[]' }}
+    strategy:
+      matrix:
+        addon: ${{ fromJSON(needs.changes.outputs.addons) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Run Home Assistant Add-on Lint
+        uses: frenck/action-addon-linter@v2
+        with:
+          path: "./addons/${{ matrix.addon }}"
+      - name: Run add-on information
+        id: information
+        uses: frenck/action-addon-information@v1
+        with:
+          path: "./addons/${{ matrix.addon }}"
+  
+  # lint-addon:
+  #   name: Lint ${{ matrix.addon }} addon
+  #   needs: changes
+  #   runs-on: ubuntu-latest
+  #   if: ${{ needs.changes.outputs.addons != '[]' }}
+  #   strategy:
+  #     matrix:
+  #       addon: ${{ fromJSON(needs.changes.outputs.addons) }}
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #     - name: Prepare repository
+  #       uses: ./.github/actions/prepare
+  #       with:
+  #         TARGET_ADDON: ${{ matrix.addon }}
+  #         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #     - name: Run lint
+  #       run: pnpm --filter "./addons/${{ matrix.addon }}" lint
+  # build:
+  #     name: Build ${{ matrix.name }} ${{ matrix.version }}
+  #     runs-on: ubuntu-latest
+  #     needs: addons-list
+  #     if: ${{ needs.addons-list.outputs.matrix != '' && needs.addons-list.outputs.matrix != '{}' }}
+  #     permissions:
+  #       contents: write
+  #     strategy:
+  #       matrix: ${{ fromJson(needs.addons-list.outputs.matrix) }}
+  #     steps:
+  #       - name: Checkout repository
+  #         uses: actions/checkout@v4
+  #       - name: Build ${{ matrix.name }} ${{ matrix.version }} docker image
+  #         uses: ./.github/actions/docker
+  #         with:
+  #           ADDON_NAME: ${{ matrix.name }}
+  #           ADDON_SUBFOLDER: ${{ matrix.subfolder }}
+  #           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #           DOCKERHUB_PUBLISH: false
