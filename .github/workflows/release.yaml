@@ -1,0 +1,75 @@
+---
+name: Release addons
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: Release addons
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-addons-matrix.outputs.json }}
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Prepare repository
+        uses: ./.github/actions/prepare
+        with:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Release Pull Request and Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          title: Release addons
+          commit: Version addons
+          version: pnpm changeset:version
+          publish: pnpm changeset:tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set Addons matrix
+        id: set-addons-matrix
+        uses: nickofthyme/object-remap@v3
+        # detect subfolder
+        with:
+          include.*.name: ${{ toJSON(fromJSON(steps.changesets.outputs.publishedPackages).*.name) }}
+          include.*.version: ${{ toJSON(fromJSON(steps.changesets.outputs.publishedPackages).*.version) }}
+  publish:
+    name: Publish ${{ matrix.name }} ${{ matrix.version }}
+    runs-on: ubuntu-latest
+    needs: release
+    if: ${{ needs.release.outputs.matrix != '{}' }}
+    permissions:
+      contents: write
+    strategy:
+      matrix: ${{ fromJson(needs.release.outputs.matrix) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        # - name: Publish ${{ matrix.name }} ${{ matrix.version }} to Docker Hub
+        #   uses: ./.github/actions/docker
+        #   with:
+        #     ADDON_NAME: ${{ matrix.name }}
+        #     ADDON_SUBFOLDER: ${{ matrix.subfolder }}
+        #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        #     DOCKERHUB_PUBLISH: true
+        #     DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        #     DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+        # - name: 🚀 Dispatch Repository Updater update signal
+        #   uses: peter-evans/repository-dispatch@v3
+        #   with:
+        #     # token: ${{ secrets.HA_DISPATCH_TOKEN }}
+        #     token: ${{ secrets.GITHUB_TOKEN }}
+        #     repository: radoslavirha/homeassistant-addons
+        #     event-type: update
+        #     client-payload: >
+        #       {
+        #         "addon": "${{ matrix.name }}",
+        #         "version": "${{ matrix.version }}"
+        #       }
