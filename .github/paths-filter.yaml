@@ -1,0 +1,2 @@
+# Key must match subdirectory in addons
+laskakit-data-feeder: addons/laskakit-data-feeder/**
