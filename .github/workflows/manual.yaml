@@ -1,0 +1,73 @@
+---
+name: Manual docker build
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  changes:
+    name: Create addons list
+    runs-on: ubuntu-latest
+    outputs:
+      addons: ${{ steps.addons.outputs.folders_no_base_path }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Compose addons list
+        id: addons
+        uses: Drafteame/list-folders-action@main
+        with:
+          paths: |
+            ./addons
+
+  lint-yaml:
+    name: YAML lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Run YAML lint
+        uses: frenck/action-yamllint@v1.5
+        with:
+          strict: true
+
+  lint-addon-dockerfile:
+    name: Dockerfile lint => ${{ matrix.addon }}
+    needs: changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.changes.outputs.addons != '[]' }}
+    strategy:
+      matrix:
+        addon: ${{ fromJSON(needs.changes.outputs.addons) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Run addon Dockerfile lint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: ./addons/${{ matrix.addon }}/Dockerfile
+
+  build:
+    name: Build ${{ matrix.name }} ${{ matrix.version }}
+    needs: changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.changes.outputs.addons != '[]' }}
+    strategy:
+      matrix:
+        addon: ${{ fromJSON(needs.changes.outputs.addons) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Run add-on information
+        id: information
+        uses: frenck/action-addon-information@v1
+        with:
+          path: ./addons/${{ matrix.addon }}
+      # - name: Build ${{ matrix.name }} ${{ matrix.version }} docker image
+      #   uses: ./.github/actions/docker
+      #   with:
+      #     ADDON_NAME: ${{ matrix.name }}
+      #     ADDON_SUBFOLDER: ${{ matrix.subfolder }}
+      #     NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     DOCKERHUB_PUBLISH: false
