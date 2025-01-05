@@ -1,0 +1,36 @@
+---
+name: Manual docker build
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  changes:
+    name: Create addons list
+    runs-on: ubuntu-latest
+    outputs:
+      addons: ${{ steps.addons.outputs.folders_no_base_path }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Compose addons list
+        id: addons
+        uses: Drafteame/list-folders-action@main
+        with:
+          paths: |
+            ./addons
+
+  build-addon-images:
+    name: Build ${{ matrix.addon }} docker images
+    needs: changes
+    if: ${{ needs.changes.outputs.addons != '[]' }}
+    strategy:
+      matrix:
+        addon: ${{ fromJSON(needs.changes.outputs.addons) }}
+    uses: ./.github/workflows/docker-build-addon.yaml
+    secrets: inherit
+    with:
+      TARGET: ${{ matrix.addon }}
+      PUBLISH: false
