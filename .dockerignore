@@ -1,0 +1,8 @@
+.act
+.changeset
+.github
+.husky
+.vscode
+node_modules
+.env
+LICENSE.md
