@@ -1,0 +1,43 @@
+---
+name: Pull request
+
+# yamllint disable-line rule:truthy
+on:
+  workflow_call:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  changes:
+    name: Check addon changes
+    runs-on: ubuntu-latest
+    # Required permissions
+    permissions:
+      pull-requests: read
+    outputs:
+      addons: ${{ steps.filter.outputs.changes }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: 📂 Detect changed files
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: .github/paths-filter.yaml
+
+  build-addon-images:
+    name: Build ${{ matrix.name }} docker images
+    needs: changes
+    if: ${{ needs.changes.outputs.addons != '[]' }}
+    # permissions:
+    #   contents: write
+    strategy:
+      matrix:
+        addon: ${{ fromJSON(needs.changes.outputs.addons) }}
+    uses: ./.github/workflows/docker-build-addon.yaml
+    secrets: inherit
+    with:
+      TARGET: ${{ matrix.addon }}
+      PUBLISH: false
