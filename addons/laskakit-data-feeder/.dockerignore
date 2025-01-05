@@ -1,0 +1,14 @@
+coverage
+dist
+node_modules
+.dockerignore
+eslint.config.mjs
+nodemon.json
+.README.j2
+Dockerfile
+Readme.md
+DOCS.md
+icon.png
+jest.config.ts
+logo.png
+vitest.config.ts
