@@ -1,0 +1,10 @@
+{
+  "extends": "@radoslavirha/config-typescript/tsconfig.json",
+  "compilerOptions": {
+      "composite": false,
+      "strictPropertyInitialization": false,
+      "useDefineForClassFields": false,
+      "types": [
+      ]
+  }
+}
