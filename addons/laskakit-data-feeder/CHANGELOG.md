@@ -4,4 +4,10 @@
 
 ### Patch Changes
 
+- [`11a2669`](https://github.com/radoslavirha/ha-addons/commit/11a26695215cde539df353da896bcb52c09a6ee5) Thanks [@radoslavirha](https://github.com/radoslavirha)! - Initial release
+
+## 0.0.2
+
+### Patch Changes
+
 - [`b771200`](https://github.com/radoslavirha/ha-addons/commit/b771200f366bfdcdddabd85830bb43af71667354) Thanks [@radoslavirha](https://github.com/radoslavirha)! - Initial release
