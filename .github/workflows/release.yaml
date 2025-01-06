@@ -1,0 +1,52 @@
+---
+name: Release addons
+
+# yamllint disable-line rule:truthy
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: Release addons
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-addons-matrix.outputs.json }}
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Prepare repository
+        uses: ./.github/actions/prepare
+        with:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Create Release Pull Request and Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          title: Release addons
+          commit: Version addons
+          version: pnpm changeset:version
+          publish: pnpm changeset:tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set Addons matrix
+        id: set-addons-matrix
+        uses: nickofthyme/object-remap@v3
+        with:
+          include.*.name: ${{ toJSON(fromJSON(steps.changesets.outputs.publishedPackages).*.name) }}
+          include.*.version: ${{ toJSON(fromJSON(steps.changesets.outputs.publishedPackages).*.version) }}
+  build-addon-images:
+    name: Publish ${{ matrix.name }} ${{ matrix.version }}
+    needs: release
+    if: ${{ needs.release.outputs.matrix != '{}' }}
+    strategy:
+      matrix: ${{ fromJson(needs.release.outputs.matrix) }}
+    uses: ./.github/workflows/docker-build-addon.yaml
+    secrets: inherit
+    with:
+      TARGET: ${{ matrix.name }}
+      PUBLISH: true
