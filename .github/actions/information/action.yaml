@@ -1,0 +1,168 @@
+---
+name: Radoslav's Home Assistant Add-on Information
+description: >-
+  Radoslav's GitHub Action for gathering information from an Home Assistant Add-on.
+  Inspired by the divine Franck Nijhof.
+  Original action should use -r flag to remove quotes.
+
+inputs:
+  path:
+    description: Path to the add-on configuration (where config.json is)
+    required: false
+outputs:
+  aarch64:
+    description: Returns if the add-on supports the aarch64 architecture
+    value: ${{ steps.architectures.outputs.aarch64 }}
+  amd64:
+    description: Returns if the add-on supports the amd64 architecture
+    value: ${{ steps.architectures.outputs.amd64 }}
+  architectures:
+    description: Returns the list of supported architectures by this add-on
+    value: ${{ steps.architectures.outputs.architectures }}
+  armhf:
+    description: Returns if the add-on supports the armhf architecture
+    value: ${{ steps.architectures.outputs.armhf }}
+  build:
+    description: File location of the build.json configuration file
+    value: ${{ steps.find.outputs.build }}
+  codenotary_base_image:
+    description: Verify the base container image
+    value: ${{ steps.basic.outputs.codenotary_base_image }}
+  codenotary_signer:
+    description: Owner signer E-Mail address for this image
+    value: ${{ steps.basic.outputs.codenotary_signer }}
+  config:
+    description: File location of the add-on config.json configuration
+    value: ${{ steps.find.outputs.config }}
+  description:
+    description: Description of the add-on
+    value: ${{ steps.basic.outputs.description }}
+  i386:
+    description: Returns if the add-on supports the i386 architecture
+    value: ${{ steps.architectures.outputs.i386 }}
+  name:
+    description: Return the name of the add-on
+    value: ${{ steps.basic.outputs.name }}
+  slug:
+    description: Returns if the configured add-on slug
+    value: ${{ steps.basic.outputs.slug }}
+  target:
+    description: Returns the add-on target folder name
+    value: ${{ steps.find.outputs.target }}
+  image:
+    description: Image-template of the add-on
+    value: ${{ steps.basic.outputs.image }}
+  version:
+    description: Returns the version of the add-on
+    value: ${{ steps.basic.outputs.version }}
+  armv7:
+    description: Returns if the add-on supports the armv7 architecture
+    value: ${{ steps.architectures.outputs.armv7 }}
+
+runs:
+  using: "composite"
+  steps:
+    - name: 🕵️ Find the add-on
+      shell: bash
+      id: find
+      run: |
+        if [[ -n "${{ inputs.path }}" ]]; then
+          path="${{ inputs.path }}"
+          path="${path%/}"
+
+          for config_ext in json yaml yml; do
+            if [[ -f "${path}/config.${config_ext}" ]]; then
+              config="${path}/config.${config_ext}"
+            fi
+          done
+
+          if [[ -z "${config+x}" ]]; then
+            echo "::error ::Could not find add-on configuration file in ${path}"
+            exit 1
+          fi
+        else
+          if ! find \
+            ./ -mindepth 2 -maxdepth 2 \
+            -regex ".*\config\.\(json\|yaml\|yml\)$" \
+            | head -1 | grep --silent .;
+          then
+            echo "::error ::Could not find add-on configuration file"
+            exit 1
+          fi
+
+          config=$(
+            find ./ -mindepth 2 -maxdepth 2 \
+            -regex ".*\config\.\(json\|yaml\|yml\)$" -printf '%P\n' \
+            | head -1
+          )
+        fi
+
+        echo "config=${config}" >> "$GITHUB_OUTPUT"
+
+        target=$(dirname "${config}")
+        echo "target=${target}" >> "$GITHUB_OUTPUT"
+
+        for config_ext in json yaml yml; do
+          if [[ -f "${target}/build.${config_ext}" ]]; then
+            build="${target}/build.${config_ext}"
+          fi
+        done
+
+        if [[ -z "${build+x}" ]]; then
+          echo "::error ::Could not find add-on build file"
+          exit 1
+        fi
+        echo "build=${build}" >> "$GITHUB_OUTPUT"
+    - name: ℹ️ Extract basic add-on information
+      shell: bash
+      id: basic
+      run: |
+        slug=$(yq -r --no-colors eval '.slug' "${{ steps.find.outputs.config }}")
+        echo "slug=${slug}" >> "$GITHUB_OUTPUT"
+
+        name=$(yq -r --no-colors eval '.name' "${{ steps.find.outputs.config }}")
+        echo "name=${name}" >> "$GITHUB_OUTPUT"
+
+        description=$(yq -r --no-colors eval '.description' "${{ steps.find.outputs.config }}")
+        echo "description=${description}" >> "$GITHUB_OUTPUT"
+
+        image=$(yq -r --no-colors eval '.image // ""' "${{ steps.find.outputs.config }}")
+        echo "image=${image}" >> "$GITHUB_OUTPUT"
+
+        version=$(yq -r --no-colors eval '.version' "${{ steps.find.outputs.config }}")
+        echo "version=${version}" >> "$GITHUB_OUTPUT"
+
+        codenotary_signer=$(
+          yq -r --no-colors eval '.codenotary.signer' "${{ steps.find.outputs.build }}"
+        )
+        echo "codenotary_signer=${codenotary_signer}" >> "$GITHUB_OUTPUT"
+
+        codenotary_base_image=$(
+          yq -r --no-colors eval '.codenotary.base_image' "${{ steps.find.outputs.build }}"
+        )
+        echo "codenotary_base_image=${codenotary_base_image}" >> "$GITHUB_OUTPUT"
+
+    - name: ℹ️ Extract add-on architecture information
+      shell: bash
+      id: architectures
+      run: |
+        architectures=$(
+          yq --no-colors --output-format json  eval '.arch' "${{ steps.find.outputs.config }}" \
+            | jq --raw-output --compact-output '. | sort'
+        )
+        echo "architectures=${architectures}" >> "$GITHUB_OUTPUT"
+
+        for architecture in \
+          aarch64 \
+          amd64 \
+          armhf \
+          armv7 \
+          i386;
+        do
+          available=$(
+            yq -r --no-colors eval \
+              ".arch[] | select(. == \"${architecture}\") | . or false" \
+              "${{ steps.find.outputs.config }}"
+          )
+          echo "${architecture}=${available}" >> "$GITHUB_OUTPUT"
+        done
