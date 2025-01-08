@@ -1,6 +1,6 @@
 #!/usr/bin/with-contenv bashio
 
-cat /data/options.json
+bashio::log.info "Reading addon options."
 
 export LASKAKIT_URL="$(bashio::config 'laskaKitURL')"
 export IMAGE_TO_CONSOLE=$(bashio::config 'imageToConsole')
