@@ -1,12 +1,12 @@
-#!/usr/bin/env bashio
+#!/usr/bin/with-contenv bashio
 
-# cat /data/options.json
+cat /data/options.json
 
-# export LASKAKIT_URL="$(bashio::config 'laskakit_url')"
-# export IMAGE_TO_CONSOLE=$(bashio::config 'image_to_console')
+export LASKAKIT_URL="$(bashio::config 'laskaKitURL')"
+export IMAGE_TO_CONSOLE=$(bashio::config 'imageToConsole')
 
-# echo $LASKAKIT_URL
-# echo $IMAGE_TO_CONSOLE
+echo $LASKAKIT_URL
+echo $IMAGE_TO_CONSOLE
 
 bashio::log.info "Starting Homeassistant Add-on LaskaKit data feeder."
 pnpm start:prod
