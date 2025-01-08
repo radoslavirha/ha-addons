@@ -33,10 +33,10 @@ jobs:
       - name: Dispatch Repository Updater update signal
         uses: peter-evans/repository-dispatch@v3
         with:
-          repository: radoslavirha/ha-addons-repoistory
+          repository: radoslavirha/ha-addons-repository
           token: ${{ secrets.REPOSITORY_DISPATCHER }}
           event-type: update
           client-payload: >
             {
-              "addon": "${{ needs.information.outputs.name }}"
+              "addon": "${{ matrix.addon }}"
             }
