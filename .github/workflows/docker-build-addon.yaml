@@ -149,7 +149,17 @@ jobs:
             org.opencontainers.image.created=${{ steps.flags.outputs.date }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.version=${{ needs.information.outputs.version }}
-
+      - name: Dispatch Repository Updater update signal
+        if: ${{ inputs.PUBLISH == true || inputs.PUBLISH == 'true' }}
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          repository: radoslavirha/ha-addons-repoistory
+          token: ${{ secrets.REPOSITORY_DISPATCHER }}
+          event-type: update
+          client-payload: >
+            {
+              "addon": "${{ needs.information.outputs.name }}"
+            }
         # # This ugly bit is necessary, or our cache will grow forever...
         # # Well until we hit GitHub's limit of 5GB :)
         # # https://github.com/docker/build-push-action/issues/252
@@ -159,16 +169,3 @@ jobs:
         #   run: |
         #     rm -rf /tmp/.docker-cache
         #     mv /tmp/.docker-cache-new /tmp/.docker-cache
-
-# - name: 🚀 Dispatch Repository Updater update signal
-#   uses: peter-evans/repository-dispatch@v3
-#   with:
-#     # token: ${{ secrets.HA_DISPATCH_TOKEN }}
-#     token: ${{ secrets.GITHUB_TOKEN }}
-#     repository: radoslavirha/homeassistant-addons
-#     event-type: update
-#     client-payload: >
-#       {
-#         "addon": "${{ matrix.name }}",
-#         "version": "${{ matrix.version }}"
-#       }

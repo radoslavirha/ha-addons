@@ -3,7 +3,6 @@ name: Manual docker build
 
 # yamllint disable-line rule:truthy
 on:
-  push:
   workflow_dispatch:
 
 jobs:
@@ -25,12 +24,19 @@ jobs:
   build-addon-images:
     name: Build ${{ matrix.addon }} docker images
     needs: changes
+    runs-on: ubuntu-latest
     if: ${{ needs.changes.outputs.addons != '[]' }}
     strategy:
       matrix:
         addon: ${{ fromJSON(needs.changes.outputs.addons) }}
-    uses: ./.github/workflows/docker-build-addon.yaml
-    secrets: inherit
-    with:
-      TARGET: ${{ matrix.addon }}
-      PUBLISH: false
+    steps:
+      - name: Dispatch Repository Updater update signal
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          repository: radoslavirha/ha-addons-repoistory
+          token: ${{ secrets.REPOSITORY_DISPATCHER }}
+          event-type: update
+          client-payload: >
+            {
+              "addon": "${{ needs.information.outputs.name }}"
+            }
