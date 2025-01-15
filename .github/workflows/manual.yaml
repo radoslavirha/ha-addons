@@ -30,7 +30,7 @@ jobs:
       matrix:
         addon: ${{ fromJSON(needs.changes.outputs.addons) }}
     steps:
-      - name: Dispatch Repository Updater update signal
+      - name: Dispatch Repository Updater for ${{ matrix.addon }}
         uses: peter-evans/repository-dispatch@v3
         with:
           repository: radoslavirha/ha-addons-repository

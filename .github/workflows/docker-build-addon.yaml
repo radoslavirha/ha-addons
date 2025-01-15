@@ -149,7 +149,7 @@ jobs:
             org.opencontainers.image.created=${{ steps.flags.outputs.date }}
             org.opencontainers.image.revision=${{ github.sha }}
             org.opencontainers.image.version=${{ needs.information.outputs.version }}
-      - name: Dispatch Repository Updater update signal
+      - name: Dispatch Repository Updater for ${{ needs.information.outputs.name }}
         if: ${{ inputs.PUBLISH == true || inputs.PUBLISH == 'true' }}
         uses: peter-evans/repository-dispatch@v3
         with:
