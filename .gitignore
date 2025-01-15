@@ -1,0 +1,13 @@
+**/coverage
+**/dist
+**/node_modules
+**/.DS_Store
+**/.npmrc
+!.npmrc
+addons/**/options.json
+addons/**/config/*.json
+!addons/**/config/custom-environment-variables.json
+!addons/**/config/production.json
+.env
+.act
+.npmrc.docker

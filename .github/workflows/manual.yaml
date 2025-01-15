@@ -1,0 +1,42 @@
+---
+name: Manual docker build
+
+# yamllint disable-line rule:truthy
+on:
+  workflow_dispatch:
+
+jobs:
+  changes:
+    name: Create addons list
+    runs-on: ubuntu-latest
+    outputs:
+      addons: ${{ steps.addons.outputs.folders_no_base_path }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Compose addons list
+        id: addons
+        uses: Drafteame/list-folders-action@main
+        with:
+          paths: |
+            ./addons
+
+  build-addon-images:
+    name: Build ${{ matrix.addon }} docker images
+    needs: changes
+    runs-on: ubuntu-latest
+    if: ${{ needs.changes.outputs.addons != '[]' }}
+    strategy:
+      matrix:
+        addon: ${{ fromJSON(needs.changes.outputs.addons) }}
+    steps:
+      - name: Dispatch Repository Updater for ${{ matrix.addon }}
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          repository: radoslavirha/ha-addons-repository
+          token: ${{ secrets.REPOSITORY_DISPATCHER }}
+          event-type: update
+          client-payload: >
+            {
+              "addon": "${{ matrix.addon }}"
+            }
