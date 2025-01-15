@@ -1,5 +1,11 @@
 # laskakit-data-feeder
 
+## 0.0.4
+
+### Patch Changes
+
+- [`ce28d84`](https://github.com/radoslavirha/ha-addons/commit/ce28d84b4ee0f9e1ceb9649a5dae5fd81b917a12) Thanks [@radoslavirha](https://github.com/radoslavirha)! - Change base images
+
 ## 0.0.3
 
 ### Patch Changes
