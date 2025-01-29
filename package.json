@@ -6,13 +6,15 @@
   "author": "Radoslav Irha <radoslav.irha@gmail.com>",
   "license": "MIT",
   "repository": "git@github.com:radoslavirha/ha-addons.git",
+  "type": "module",
   "scripts": {
     "build": "pnpm --stream --recursive run build",
-    "changeset:version": "changeset version && pnpm run sync:version",
+    "changeset:version": "changeset version && pnpm run sync:version && pnpm run build:docs",
     "changeset:tag": "changeset tag",
     "lint": "pnpm --stream --recursive run lint",
     "lint:fix": "pnpm --stream --recursive run lint:fix",
     "sync:version": "pnpm --stream --recursive run sync:version",
+    "build:docs": "node docs.js",
     "test": "pnpm --stream --recursive --sequential run test",
     "verify": "pnpm run lint && pnpm run build && pnpm run test",
     "prepare": "husky"
@@ -29,7 +31,10 @@
     "linux"
   ],
   "devDependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.0",
     "@changesets/changelog-github": "^0.5.0",
-    "@changesets/cli": "^2.27.11"
+    "@changesets/cli": "^2.27.11",
+    "handlebars": "^4.7.8"
   }
 }

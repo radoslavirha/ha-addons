@@ -7,6 +7,20 @@ on:
   workflow_dispatch:
 
 jobs:
+  # docs:
+  #   name: Build docs
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - name: Checkout repository
+  #       uses: actions/checkout@v4
+  #     - name: Prepare repository
+  #       uses: ./.github/actions/prepare
+  #       with:
+  #         TARGET_ADDON: ${{ matrix.addon }}
+  #         NODE_AUTH_TOKEN: ${{ secrets.TOOLKIT_HUB_PACKAGES }}
+  #     - name: Build docs
+  #       run: pnpm build:docs
+
   changes:
     name: Check addon changes
     runs-on: ubuntu-latest
