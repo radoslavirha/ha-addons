@@ -6,7 +6,7 @@ This document describes the process for running this application on your local c
 
 ### Prerequisites
 
-- node.js > 20.18.1
+- node.js > 22.14.0
 - pnpm > 9.14.4
 
 ### Getting started
@@ -29,5 +29,5 @@ Example:
 
 ```sh
 docker build -t radoslavirha/ha-addon-laskakit-data-feeder:0.0.1 --secret id=npmrc,src=.npmrc.docker ./addons/laskakit-data-feeder
-docker run -v ./addons/laskakit-data-feeder/options.json:/data/options.json radoslavirha/ha-addon-laskakit-data-feeder:0.0.1
+docker run -v ./addons/laskakit-data-feeder/options.json:/data/options.json -p 4000:4000 radoslavirha/ha-addon-laskakit-data-feeder:0.0.1
 ```

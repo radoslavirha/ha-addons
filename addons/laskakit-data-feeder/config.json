@@ -17,12 +17,8 @@
     "8000/tcp": 8000
   },
   "options": {
-    "imageToConsole": false,
-    "laskaKitURL": null
   },
   "schema": {
-    "imageToConsole": "bool",
-    "laskaKitURL": "url"
   },
   "image": "radoslavirha/ha-addon-laskakit-data-feeder-{arch}"
 }

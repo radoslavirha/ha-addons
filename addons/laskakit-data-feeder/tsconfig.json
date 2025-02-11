@@ -3,8 +3,6 @@
   "compilerOptions": {
       "composite": false,
       "strictPropertyInitialization": false,
-      "useDefineForClassFields": false,
-      "types": [
-      ]
+      "useDefineForClassFields": false
   }
 }

@@ -27,8 +27,6 @@ try {
         configModel: ConfigModel
     });
 
-    console.log(config.config);
-    
     const configuration: ServerConfiguration = {
         ...config.server,
         api: config.api

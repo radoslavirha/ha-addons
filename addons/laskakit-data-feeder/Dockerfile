@@ -14,9 +14,9 @@ ENV PATH="$PNPM_HOME:$PATH"
 RUN apt-get update                                              && \
     apt-get install -y --no-install-recommends                     \
         curl=7.88.1-10+deb12u8                                  && \
-    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -   && \
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash -   && \
     apt-get install -y --no-install-recommends                     \
-        nodejs=20.18.1-1nodesource1                             && \
+        nodejs=22.14.0-1nodesource1                             && \
     apt-get clean                                               && \
     rm -rf /var/lib/apt/lists/*                                 && \
     corepack enable pnpm
