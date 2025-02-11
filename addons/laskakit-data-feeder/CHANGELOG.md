@@ -1,5 +1,11 @@
 # laskakit-data-feeder
 
+## 0.0.4
+
+### Patch Changes
+
+- [`349375c`](https://github.com/radoslavirha/ha-addons/commit/349375cdb072c9c5aeb8cfe2b08f0c2987a6b416) Thanks [@radoslavirha](https://github.com/radoslavirha)! - Radar endpoints
+
 ## 0.0.3
 
 ### Patch Changes
