@@ -22,6 +22,13 @@
   "dependencies": {
     "husky": "^9.1.7"
   },
+  "devDependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.0",
+    "@changesets/changelog-github": "^0.5.0",
+    "@changesets/cli": "^2.27.11",
+    "handlebars": "^4.7.8"
+  },
   "engines": {
     "node": ">= 22.14.0",
     "pnpm": ">= 9.14.4"
@@ -29,12 +36,5 @@
   "os": [
     "darwin",
     "linux"
-  ],
-  "devDependencies": {
-    "@actions/core": "^1.11.1",
-    "@actions/github": "^6.0.0",
-    "@changesets/changelog-github": "^0.5.0",
-    "@changesets/cli": "^2.27.11",
-    "handlebars": "^4.7.8"
-  }
+  ]
 }

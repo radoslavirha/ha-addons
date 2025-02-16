@@ -1,12 +1,14 @@
 import { Controller, ProviderScope, Scope } from '@tsed/di';
+import { QueryParams } from '@tsed/platform-params';
 import { Default, Description, Get, Returns } from '@tsed/schema';
+import { Docs } from '@tsed/swagger';
 import { RadarCitiesHandler, RadarImageHandler } from '../handlers/radar/index.js';
 import { RadarCitiesResponse } from '../models/index.js';
-import { QueryParams } from '@tsed/platform-params';
 
 @Description('API endpoints related to rain forecast.')
 @Controller('/radar')
 @Scope(ProviderScope.REQUEST)
+@Docs('v1')
 export class RadarController {
     constructor(
         private radarCitiesHandler: RadarCitiesHandler,
